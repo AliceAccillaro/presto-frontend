@@ -1,76 +1,212 @@
-fetch('./annunci.json')
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
+let annunciData = [];
 
-    const radioWrapper = document.getElementById('radio-wrapper');
-    const cardWrapper = document.getElementById('card-wrapper');
+fetch("./annunci.json")
+  .then(function (response) {
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return response.json();
+  })
+  .then(function (data) {
+    annunciData = data;
 
-    function radioCreate() {
-      let categories = data.map(annuncio => annuncio.category);
-      let uniqueCategories = [...new Set(categories)];
-      uniqueCategories.unshift('Tutti');
+    createCategoryRadios();
+    setupPriceInput();
+    globalFilter();
+    setupEvents();
+  })
+  .catch(function (err) {
+    console.error("ERRORE:", err);
+  });
 
-      radioWrapper.innerHTML = "";
+function getRadioWrapper() {
+  return document.getElementById("radio-wrapper");
+}
 
-      uniqueCategories.forEach((category, index) => {
-        const safeId = category.replace(/\s+/g, '-').toLowerCase();
+function getCardWrapper() {
+  return document.getElementById("card-wrapper");
+}
 
-        let div = document.createElement('div');
-        div.classList.add('form-check');
+function getPriceInput() {
+  return document.getElementById("priceInput");
+}
 
-        div.innerHTML = `
-          <input 
-            class="form-check-input"
-            type="radio"
-            name="radioDefault"
-            id="${safeId}"
-            value="${category}"
-            ${index === 0 ? 'checked' : ''}
-          >
-          <label class="form-check-label" for="${safeId}">
-            ${category}
-          </label>
-        `;
+function getPriceValue() {
+  return document.getElementById("priceValue");
+}
 
-        radioWrapper.appendChild(div);
-      });
-    }
+function getWordInput() {
+  return document.getElementById("wordInput");
+}
 
-    function showCards(filteredCategory = 'Tutti') {
-      cardWrapper.innerHTML = '';
+function createCategoryRadios() {
+  let radioWrapper = getRadioWrapper();
+  if (!radioWrapper) return;
 
-      const filteredData =
-        filteredCategory === 'Tutti'
-          ? data
-          : data.filter(annuncio => annuncio.category === filteredCategory);
+  radioWrapper.innerHTML = "";
 
-      filteredData.forEach((annuncio, i) => {
-        let div = document.createElement('div');
-        div.classList.add('card-custom');
+  let categories = annunciData.map(function (a) {
+    return a.category;
+  });
 
-        div.innerHTML = `
-          <img src="https://picsum.photos/seed/${annuncio.id ?? i}/300/200" alt="immagine casuale" class="img-fluid img-card">
-          <p class="h2">${annuncio.name}</p>
-          <p class="h4">${annuncio.category}</p>
-          <p class="lead">${annuncio.price} €</p>
-        `;
+  let uniqueCategories = ["Tutti", ...new Set(categories)];
 
-        cardWrapper.appendChild(div);
-      });
-    }
+  uniqueCategories.forEach(function (category, index) {
+    let safeId = category.replace(/\s+/g, "-").toLowerCase();
 
-    // 1) creo radio
-    radioCreate();
+    let div = document.createElement("div");
+    div.classList.add("form-check");
 
-    // 2) mostro subito le card (tutte)
-    showCards();
+    div.innerHTML = `
+      <input
+        class="form-check-input"
+        type="radio"
+        name="radioDefault"
+        id="${safeId}"
+        value="${category}"
+        ${index === 0 ? "checked" : ""}
+      >
+      <label class="form-check-label" for="${safeId}">
+        ${category}
+      </label>
+    `;
 
-    // 3) quando cambio radio, filtro
-    radioWrapper.addEventListener('change', (e) => {
-      if (e.target && e.target.name === 'radioDefault') {
-        showCards(e.target.value);
+    radioWrapper.appendChild(div);
+  });
+}
+
+function showCards(list) {
+  let cardWrapper = getCardWrapper();
+  if (!cardWrapper) return;
+
+  cardWrapper.innerHTML = "";
+
+  if (!list.length) {
+    cardWrapper.innerHTML = `<p class="lead">Nessun annuncio trovato</p>`;
+    return;
+  }
+
+  list.forEach(function (annuncio, i) {
+    let div = document.createElement("div");
+    div.classList.add("card-custom");
+
+    let priceNum = Number(annuncio.price);
+    let priceText = isNaN(priceNum)
+      ? annuncio.price
+      : priceNum.toFixed(2);
+
+    div.innerHTML = `
+      <div class="img-wrap">
+        <img
+          src="https://picsum.photos/seed/${annuncio.id ?? i}/300/200"
+          alt="immagine annuncio"
+        >
+      </div>
+      <p class="h2">${annuncio.name}</p>
+      <p class="h4">${annuncio.category}</p>
+      <p class="lead">${priceText} €</p>
+    `;
+
+    cardWrapper.appendChild(div);
+  });
+}
+
+function setupPriceInput() {
+  let priceInput = getPriceInput();
+  let priceValue = getPriceValue();
+  if (!priceInput) return;
+
+  let prices = annunciData
+    .map(function (a) {
+      return Number(a.price);
+    })
+    .filter(function (n) {
+      return !isNaN(n);
+    })
+    .sort(function (a, b) {
+      return a - b;
+    });
+
+  let maxPrice = Math.ceil(prices[prices.length - 1] || 0);
+
+  priceInput.max = maxPrice;
+  priceInput.value = maxPrice;
+
+  if (priceValue) priceValue.innerHTML = maxPrice;
+}
+
+function filterByCategory(array) {
+  let radios = document.querySelectorAll(".form-check-input");
+  let radioArray = Array.from(radios);
+
+  let checked = radioArray.find(function (r) {
+    return r.checked;
+  });
+
+  if (!checked || checked.value === "Tutti") return array;
+
+  return array.filter(function (annuncio) {
+    return annuncio.category === checked.value;
+  });
+}
+
+function filterByPrice(array) {
+  let priceInput = getPriceInput();
+  if (!priceInput) return array;
+
+  let max = Number(priceInput.value);
+
+  return array.filter(function (annuncio) {
+    return Number(annuncio.price) <= max;
+  });
+}
+
+function filterByWord(array) {
+  let wordInput = getWordInput();
+  if (!wordInput) return array;
+
+  let word = wordInput.value.toLowerCase().trim();
+  if (word === "") return array;
+
+  return array.filter(function (annuncio) {
+    let nameText = (annuncio.name || "").toLowerCase();
+    let categoryText = (annuncio.category || "").toLowerCase();
+    return (
+      nameText.includes(word) || categoryText.includes(word)
+    );
+  });
+}
+
+function globalFilter() {
+  let filtered = filterByCategory(annunciData);
+  filtered = filterByPrice(filtered);
+  filtered = filterByWord(filtered);
+
+  showCards(filtered);
+}
+
+function setupEvents() {
+  let radioWrapper = getRadioWrapper();
+  let priceInput = getPriceInput();
+  let priceValue = getPriceValue();
+  let wordInput = getWordInput();
+
+  if (radioWrapper) {
+    radioWrapper.addEventListener("change", function (e) {
+      if (e.target && e.target.name === "radioDefault") {
+        globalFilter();
       }
     });
-  })
-  .catch(err => console.error(err));
+  }
+
+  if (priceInput) {
+    priceInput.addEventListener("input", function () {
+      if (priceValue) priceValue.innerHTML = priceInput.value;
+      globalFilter();
+    });
+  }
+
+  if (wordInput) {
+    wordInput.addEventListener("input", function () {
+      globalFilter();
+    });
+  }
+}

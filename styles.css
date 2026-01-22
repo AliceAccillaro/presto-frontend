@@ -289,6 +289,7 @@ header {
 }
 
 
+
 .card-custom{
   width: 100%;
   box-sizing: border-box;
@@ -297,18 +298,26 @@ header {
   box-shadow: 6px 6px 6px var(--redtransparent);
   border: 2px solid var(--red);
   border-radius: 20px;
-
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
   align-items: center;
-  justify-content: space-evenly;
 }
 
-.img-card{
+/* immagine più presente */
+.img-wrap{
   width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
+  aspect-ratio: 1 / 1;     /* QUADRATA → immagine più grande */
+  overflow: hidden;
+  flex-shrink: 0;          /* impedisce alla img di ridursi */
 }
+
+.img-wrap img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 
