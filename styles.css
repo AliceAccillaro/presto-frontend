@@ -281,7 +281,7 @@ header {
 }
 
 /* cards  */
-#card-wrapper{
+#card-wrapper {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
@@ -290,7 +290,7 @@ header {
 
 
 
-.card-custom{
+.card-custom {
   width: 100%;
   box-sizing: border-box;
 
@@ -306,14 +306,16 @@ header {
 }
 
 /* immagine più presente */
-.img-wrap{
+.img-wrap {
   width: 100%;
-  aspect-ratio: 1 / 1;     /* QUADRATA → immagine più grande */
+  aspect-ratio: 1 / 1;
+  /* QUADRATA → immagine più grande */
   overflow: hidden;
-  flex-shrink: 0;          /* impedisce alla img di ridursi */
+  flex-shrink: 0;
+  /* impedisce alla img di ridursi */
 }
 
-.img-wrap img{
+.img-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -321,3 +323,97 @@ header {
 }
 
 
+/* Chi siamo */
+.circle {
+  height: 300px;
+  width: 300px;
+  border-radius: 50%;
+  border: 3px solid var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.opener {
+  height: 75px;
+  width: 75px;
+  border-radius: 50%;
+  border: 2px solid var(--lightblue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  z-index: 3;
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+.moved{
+  height: 75px;
+  width: 75px;
+  border-radius: 50%;
+  border: 2px solid var(--lightblue);
+  background-color: var(--lightblue);
+  position: absolute;
+  background-image: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 2;
+  transition: 0.5s;
+  cursor: pointer;
+}
+
+.vh-75 {
+  height: 75vh;
+}
+
+.flip-card{
+  height: 400px;
+  width: 250px;
+  border-radius: 20px;
+}
+
+@media (max-width: 767.98px) {
+  .flip-card {
+    margin: 0 auto;          
+  }
+
+  .col-12.col-md-6.d-flex {
+    justify-content: center; 
+  }
+}
+
+.flip-card:hover > .inner{
+  transform: rotateY(180deg);
+}
+
+.inner{
+  height: 100%;
+  width: 100%;
+  border: 2px solid var(--red);
+  border-radius: 20px;
+  position: relative;
+  transition: 0.5s;
+  transform-style: preserve-3d;
+}
+
+.inner-face{
+  height: 400px;
+  width: 250px;
+  background-position: center;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  position: absolute;
+  backface-visibility: hidden;
+}
+
+.inner-back{
+  height: 400px;
+  width: 250px;
+  position: absolute;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  text-align: center;
+  padding: 15px;
+}
